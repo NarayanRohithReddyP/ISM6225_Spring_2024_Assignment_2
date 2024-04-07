@@ -100,7 +100,23 @@ namespace ISM6225_Spring_2024_Assignment_2
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return 0;
+
+                if(nums.Length == 0) // Checking for an empty array
+                    return 0;
+
+                int uniqueElements = 1; // Create atleast one unique element
+
+                for(int i=1; i<nums.Length; i++)
+                {
+                    if (nums[i] != nums[i-1]) // Ensure whether the current element is different from the previous one
+                    {
+                        nums[uniqueElements] = nums[i]; //Place the unique element at the next available position 
+                        uniqueElements++;
+                    }
+                }
+
+                return uniqueElements;
+
             }
             catch (Exception)
             {
@@ -135,7 +151,22 @@ namespace ISM6225_Spring_2024_Assignment_2
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return new List<int>();
+
+                int nonZeroIndex = 0; //Index to track the position where the non-zero elements has to be places
+
+                for(int i=0; i<nums.Length; i++)
+                {
+                    if (nums[i] != 0)
+                    {
+                        // Swap the non-zero element with the element at nonZeroIndex
+                        int temp = nums[nonZeroIndex];
+                        nums[nonZeroIndex] = nums[i];
+                        nums[i] = temp;
+
+                        nonZeroIndex++; // Move the nonZeroIndex to the next place
+                    }
+                }
+                return nums; // Return the modified array
             }
             catch (Exception)
             {
@@ -186,7 +217,44 @@ namespace ISM6225_Spring_2024_Assignment_2
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return new List<IList<int>>();
+
+                IList<IList<int>> triplets = new List<IList<int>>();
+
+                // Count occurrences of each number
+                Dictionary<int, int> numCount = new Dictionary<int, int>();
+                foreach (int num in nums)
+                {
+                    if (!numCount.ContainsKey(num))
+                        numCount[num] = 1; // Start the counting if you see the occurence of a number for the first time
+                    else
+                        numCount[num]++; // Increment the count if the number is already counted
+                }
+
+                // Hashset to track processed triplets
+                HashSet<string> processed = new HashSet<string>();
+
+                for (int i = 0; i < nums.Length; i++) // Loop through the array
+                {
+                    numCount[nums[i]]--;  // Reduce the count of the current number
+
+                    for (int j = i + 1; j < nums.Length; j++)  // Find pairs for the current number
+                    {
+                        int complement = -(nums[i] + nums[j]);  //Find the complement needed
+
+                        //Check if the complement exists
+                        if (numCount.ContainsKey(complement) && (complement > nums[j] || (complement == nums[j] && numCount[complement] > 0)))
+                        {
+                            string key = nums[i] + "," + nums[j] + "," + complement;  //Create a key for the triplet
+                            if (!processed.Contains(key)) //Avoid processing duplicates 
+                            {
+                                triplets.Add(new List<int> { nums[i], nums[j], complement }); //Add the triplets to the result
+                                processed.Add(key); // Record the obtained triplet
+                            }
+                        }
+                    }
+                }
+
+                return triplets; // Return the list of triplets
             }
             catch (Exception)
             {
@@ -221,7 +289,27 @@ namespace ISM6225_Spring_2024_Assignment_2
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return 0;
+
+                int maxConsecutive = 0; // Keeps track of the longest sequence of consecutive ones
+                int currentConsecutive = 0; // Counts the length of the current sequence of consecutive ones
+
+                for(int i=0; i<nums.Length; i++) // Loop through each element
+                {
+                    if (nums[i] == 1)
+                    {
+                        currentConsecutive++; // Increment the consecutive count
+
+                        maxConsecutive = Math.Max(maxConsecutive, currentConsecutive); // Update the maxConsecutive if the current count is greater
+                    }
+
+                    // If the current number is 0, the sequence of consecutive 1's ends
+                    else
+                    {
+                        currentConsecutive = 0; //Reset the count of consecutive 1's 
+                    }
+                }
+
+                return maxConsecutive; // Return the length of the longest sequence of consecutive 1's 
             }
             catch (Exception)
             {
@@ -252,18 +340,32 @@ namespace ISM6225_Spring_2024_Assignment_2
 
         */
 
-        public static int BinaryToDecimal(int binary)
+        public static int BinaryToDecimal(int binaryNumber)
         {
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return 0;
+
+                int decimalNumber = 0;
+                int baseValue = 1; // Represents the base value for the current bit position
+
+                while (binaryNumber > 0)
+                {
+                    int lastDigit = binaryNumber % 10; // Extract the last digit of the binary number
+                    binaryNumber /= 10; // Remove the last digit from the binary number
+
+                    decimalNumber += lastDigit * baseValue; // Multiply the last digit by the base value and add it to the decimal number
+                    baseValue *= 2; // Move to the next bit position by multiplying the base value by 2
+                }
+
+                return decimalNumber;
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
 
         /*
 
@@ -295,7 +397,52 @@ namespace ISM6225_Spring_2024_Assignment_2
             try
             {
                 // Write your code here and you can modify the return value according to the requirements
-                return 0;
+
+                if (nums.Length < 2) return 0;
+
+                int maxDifference = 0;
+                int minNum = int.MaxValue;
+                int maxNum = int.MinValue;
+
+                // Find the minimum and maximum elements in the array
+                foreach (int num in nums)
+                {
+                    minNum = Math.Min(minNum, num);
+                    maxNum = Math.Max(maxNum, num);
+                }
+
+                // Calculate the size of each bucket
+                int bucketSize = Math.Max(1, (maxNum - minNum) / (nums.Length - 1));
+
+                // Calculate the number of buckets needed
+                int bucketCount = (maxNum - minNum) / bucketSize + 1;
+
+                // Initialize bucket arrays
+                int[] bucketMin = new int[bucketCount];
+                int[] bucketMax = new int[bucketCount];
+                bool[] bucketUsed = new bool[bucketCount];
+
+                // Distribute elements into buckets
+                foreach (int num in nums)
+                {
+                    int bucketIndex = (num - minNum) / bucketSize;
+                    bucketMin[bucketIndex] = bucketUsed[bucketIndex] ? Math.Min(bucketMin[bucketIndex], num) : num;
+                    bucketMax[bucketIndex] = bucketUsed[bucketIndex] ? Math.Max(bucketMax[bucketIndex], num) : num;
+                    bucketUsed[bucketIndex] = true;
+                }
+
+                // Calculate maximum gap between buckets
+                int prevBucketMax = minNum;
+                for (int i = 0; i < bucketCount; i++)
+                {
+                    if (bucketUsed[i])
+                    {
+                        maxDifference = Math.Max(maxDifference, bucketMin[i] - prevBucketMax);
+                        prevBucketMax = bucketMax[i];
+                    }
+                }
+
+                return maxDifference;
             }
             catch (Exception)
             {
@@ -303,8 +450,9 @@ namespace ISM6225_Spring_2024_Assignment_2
             }
         }
 
-        /*
 
+
+        /*
         Question:7
         Given an integer array nums, return the largest perimeter of a triangle with a non-zero area, formed from three of these lengths. If it is impossible to form any triangle of a non-zero area, return 0.
 
@@ -330,18 +478,37 @@ namespace ISM6225_Spring_2024_Assignment_2
 
         */
 
-        public static int LargestPerimeter(int[] nums)
+        public static int LargestPerimeter(int[] sideLengths)
         {
             try
             {
-                // Write your code here and you can modify the return value according to the requirements
-                return 0;
+                Array.Sort(sideLengths); // Sort the side lengths in non-decreasing order
+
+                int maxPerimeter = 0;
+
+                // Start from the end of the array to find the largest possible perimeter
+                for (int i = sideLengths.Length - 1; i >= 2; i--)
+                {
+                    int side1 = sideLengths[i - 2];
+                    int side2 = sideLengths[i - 1];
+                    int side3 = sideLengths[i];
+
+                    // If the sum of two shorter sides is greater than the longest side, it can form a triangle
+                    if (side1 + side2 > side3)
+                    {
+                        maxPerimeter = side1 + side2 + side3; // Update the maximum perimeter
+                        break; // No need to check further, as we found the largest perimeter
+                    }
+                }
+
+                return maxPerimeter;
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
 
         /*
 
@@ -388,14 +555,25 @@ namespace ISM6225_Spring_2024_Assignment_2
         {
             try
             {
-                // Write your code here and you can modify the return value according to the requirements
-                return "";
+                // Iterate through the string until all occurrences of the part are removed
+                while (s.Contains(part))
+                {
+                    // Find the leftmost occurrence of the part
+                    int index = s.IndexOf(part);
+
+                    // Remove the part from the string
+                    s = s.Remove(index, part.Length);
+                }
+
+                // Return the modified string after removing all occurrences of the part
+                return s;
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
 
         /* Inbuilt Functions - Don't Change the below functions */
         static string ConvertIListToNestedList(IList<IList<int>> input)
